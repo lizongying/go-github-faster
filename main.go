@@ -7,7 +7,9 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -35,16 +37,31 @@ type Host struct {
 	t       int64
 }
 
+type Hosts []Host
+
+func (h Hosts) Len() int {
+	return len(h)
+}
+func (h Hosts) Swap(i, j int) {
+	h[i], h[j] = h[j], h[i]
+}
+func (h Hosts) Less(i, j int) bool {
+	return h[i].t < h[j].t
+}
+
 func Ping(address string) (int64, error) {
-	u := fmt.Sprintf("%s:22", address)
 	now := time.Now()
+	u := fmt.Sprintf("%s:22", address)
 	dialer := net.Dialer{
 		Timeout: time.Second * time.Duration(5),
 	}
-	_, err := dialer.Dial("tcp", u)
+	conn, err := dialer.Dial("tcp", u)
 	if err != nil {
 		return 0, err
 	}
+	defer func(conn net.Conn) {
+		_ = conn.Close()
+	}(conn)
 	t := time.Now().Sub(now).Milliseconds()
 	return t, nil
 }
@@ -68,46 +85,38 @@ func main() {
 		return
 	}
 
-	var hosts []Host
+	var hosts Hosts
+	var lock sync.Mutex
+	var wg = sync.WaitGroup{}
 	for _, v := range meta.Git {
-		if strings.Contains(v, ":") {
-			continue
-		}
-		idx := strings.Index(v, "/")
-		last := v[idx:]
-		if last != "/32" {
-			continue
-		}
-		address := v[:strings.Index(v, "/")]
-		t, err := Ping(address)
-		if err != nil {
-			continue
-		}
-		if len(hosts) == 0 {
-			hosts = []Host{{
-				address: address,
-				t:       t,
-			}}
-			continue
-		}
-		ok := false
-		for kk, vv := range hosts {
-			if t < vv.t {
-				ok = true
-				hosts = append(hosts[:kk], append([]Host{{
-					address: address,
-					t:       t,
-				}}, hosts[kk:]...)...)
-				break
+		wg.Add(1)
+		go func(i string) {
+			defer wg.Done()
+			if strings.Contains(i, ":") {
+				return
 			}
-		}
-		if !ok {
+			idx := strings.Index(i, "/")
+			last := i[idx:]
+			if last != "/32" {
+				return
+			}
+			address := i[:strings.Index(i, "/")]
+			t, err := Ping(address)
+			if err != nil {
+				return
+			}
+			lock.Lock()
 			hosts = append(hosts, Host{
 				address: address,
 				t:       t,
 			})
-		}
+			lock.Unlock()
+		}(v)
 	}
+	wg.Wait()
+
+	sort.Sort(hosts)
+
 	for _, v := range hosts {
 		fmt.Printf("%s github.com\n", v.address)
 	}

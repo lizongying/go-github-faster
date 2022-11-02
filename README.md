@@ -1,4 +1,4 @@
-# go github
+# go github hosts
 
 get fastest github ip
 

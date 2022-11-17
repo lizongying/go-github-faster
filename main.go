@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/lizongying/go-ip-utils/iputils"
 	"io"
 	"log"
 	"net"
@@ -42,9 +43,11 @@ type Hosts []Host
 func (h Hosts) Len() int {
 	return len(h)
 }
+
 func (h Hosts) Swap(i, j int) {
 	h[i], h[j] = h[j], h[i]
 }
+
 func (h Hosts) Less(i, j int) bool {
 	return h[i].t < h[j].t
 }
@@ -95,12 +98,8 @@ func main() {
 			if strings.Contains(i, ":") {
 				return
 			}
-			idx := strings.Index(i, "/")
-			last := i[idx:]
-			if last != "/32" {
-				return
-			}
-			address := i[:strings.Index(i, "/")]
+			ips, _ := iputils.CidrToIpsClean(i)
+			address := ips[0]
 			t, err := Ping(address)
 			if err != nil {
 				return

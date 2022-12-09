@@ -13,7 +13,7 @@ go mod tidy
 make 
 ```
 
-### use
+### usage
 
 * -q 安静模式（不输出时间）
 

@@ -52,13 +52,15 @@ func (i Ips) Less(a, b int) bool {
 	return i[a].t < i[b].t
 }
 
-func Ping(address string) (int64, error) {
+type Github struct {
+	port   int
+	dialer *net.Dialer
+}
+
+func (g *Github) Ping(address string) (int64, error) {
 	now := time.Now()
-	u := fmt.Sprintf("%s:22", address)
-	dialer := net.Dialer{
-		Timeout: time.Second * time.Duration(5),
-	}
-	conn, err := dialer.Dial("tcp", u)
+	u := fmt.Sprintf("%s:%d", address, g.port)
+	conn, err := g.dialer.Dial("tcp", u)
 	if err != nil {
 		return 0, err
 	}
@@ -69,7 +71,7 @@ func Ping(address string) (int64, error) {
 	return t, nil
 }
 
-func GetIps() (ips Ips) {
+func (g *Github) GetIps() (ips Ips) {
 	u := "https://api.github.com/meta"
 	r, err := http.Get(u)
 	if err != nil {
@@ -99,8 +101,8 @@ func GetIps() (ips Ips) {
 			}
 			ip, _ := iputils.CidrToIpsClean(i)
 			address := ip[0]
-			t, err := Ping(address)
-			if err != nil {
+			t, e := g.Ping(address)
+			if e != nil {
 				return
 			}
 			lock.Lock()
@@ -115,4 +117,14 @@ func GetIps() (ips Ips) {
 
 	sort.Sort(ips)
 	return ips
+}
+
+func NewGithub(port int) (github *Github) {
+	github = &Github{
+		port: port,
+		dialer: &net.Dialer{
+			Timeout: time.Second * time.Duration(5),
+		},
+	}
+	return
 }

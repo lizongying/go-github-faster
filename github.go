@@ -35,7 +35,7 @@ type Meta struct {
 
 type Ip struct {
 	address string
-	t       int64
+	time    int64
 }
 
 type Ips []Ip
@@ -49,7 +49,7 @@ func (i Ips) Swap(a, b int) {
 }
 
 func (i Ips) Less(a, b int) bool {
-	return i[a].t < i[b].t
+	return i[a].time < i[b].time
 }
 
 type Github struct {
@@ -108,7 +108,7 @@ func (g *Github) GetIps() (ips Ips) {
 			lock.Lock()
 			ips = append(ips, Ip{
 				address: address,
-				t:       t,
+				time:    t,
 			})
 			lock.Unlock()
 		}(v)

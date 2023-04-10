@@ -6,14 +6,15 @@ import (
 )
 
 func main() {
-	isQuietPtr := flag.Bool("q", false, "isQuiet")
+	quietPtr := flag.Bool("q", false, "quiet")
 	portPtr := flag.Int("p", 22, "port")
+	modePtr := flag.String("m", "git", "mode web/api/git")
 	flag.Parse()
 
-	github := NewGithub(*portPtr)
+	github := NewGithub(*portPtr, *modePtr)
 	ips := github.GetIps()
 	for _, v := range ips {
-		if *isQuietPtr {
+		if *quietPtr {
 			fmt.Printf("%s github.com\n", v.address)
 			continue
 		}

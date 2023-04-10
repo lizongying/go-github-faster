@@ -54,6 +54,7 @@ func (i Ips) Less(a, b int) bool {
 
 type Github struct {
 	port   int
+	mode   string
 	dialer *net.Dialer
 }
 
@@ -92,7 +93,17 @@ func (g *Github) GetIps() (ips Ips) {
 
 	var lock sync.Mutex
 	var wg = sync.WaitGroup{}
-	for _, v := range meta.Git {
+	var ipList []string
+	switch g.mode {
+	case "web":
+		ipList = meta.Web
+	case "git":
+		ipList = meta.Git
+	case "api":
+		ipList = meta.API
+	default:
+	}
+	for _, v := range ipList {
 		wg.Add(1)
 		go func(i string) {
 			defer wg.Done()
@@ -119,9 +130,10 @@ func (g *Github) GetIps() (ips Ips) {
 	return ips
 }
 
-func NewGithub(port int) (github *Github) {
+func NewGithub(port int, mode string) (github *Github) {
 	github = &Github{
 		port: port,
+		mode: mode,
 		dialer: &net.Dialer{
 			Timeout: time.Second * time.Duration(5),
 		},

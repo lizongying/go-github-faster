@@ -7,11 +7,17 @@ import (
 
 func main() {
 	quietPtr := flag.Bool("q", false, "quiet")
-	portPtr := flag.Int("p", 22, "port")
-	modePtr := flag.String("m", "git", "mode web/api/git")
+	protocolPtr := flag.String("p", "tcp", "protocol tcp/ssh")
+	modePtr := flag.String("m", "web", "mode web/api/git")
 	flag.Parse()
 
-	github := NewGithub(*portPtr, *modePtr)
+	port := 443
+	switch *protocolPtr {
+	case "ssh":
+		port = 22
+	}
+
+	github := NewGithub(port, *modePtr)
 	ips := github.GetIps()
 	for _, v := range ips {
 		if *quietPtr {

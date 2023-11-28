@@ -111,6 +111,9 @@ func (g *Github) GetIps() (ips Ips) {
 				return
 			}
 			ip, _ := iputils.CidrToIpsClean(i)
+			if len(ip) == 0 {
+				return
+			}
 			address := ip[0]
 			t, e := g.Ping(address)
 			if e != nil {

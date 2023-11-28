@@ -7,7 +7,7 @@ import (
 )
 
 func TestGetIps(t *testing.T) {
-	github := gf.NewGithub(22)
+	github := gf.NewGithub(22, "api")
 	ips := github.GetIps()
 	t.Log(ips)
 	assert.Greater(t, len(ips), 0)

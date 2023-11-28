@@ -6,6 +6,7 @@ import (
 	"github.com/lizongying/go-ip-utils/iputils"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"sort"
@@ -111,10 +112,17 @@ func (g *Github) GetIps() (ips Ips) {
 				return
 			}
 			ip, _ := iputils.CidrToIpsClean(i)
-			if len(ip) == 0 {
+			var ip2 []string
+			for _, v1 := range ip {
+				if v1 == "20.27.177.113" {
+					continue
+				}
+				ip2 = append(ip2, v1)
+			}
+			if len(ip2) == 0 {
 				return
 			}
-			address := ip[0]
+			address := ip2[rand.Intn(len(ip2))]
 			t, e := g.Ping(address)
 			if e != nil {
 				return

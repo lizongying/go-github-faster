@@ -31,7 +31,7 @@ jobs:
 
           GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ./github_faster_darwin_arm64 .
 
-          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ./github_faster_windows_amd64.exe .
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w" -o ./github_faster_windows.exe .
 
       - name: Create Release
         id: create_release
@@ -90,6 +90,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./github_faster_windows_amd64.exe
-          asset_name: github_faster_windows_amd64.exe
+          asset_path: ./github_faster_windows.exe
+          asset_name: github_faster_windows.exe
           asset_content_type: application/x-msdownload
